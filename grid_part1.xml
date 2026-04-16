@@ -1,0 +1,9 @@
+<layout>
+    <!-- Rows A-B, Cols 0-2 -->
+    <item id="1" type="nav" locations="{A,0}" link="index.html" />
+    <item id="98" type="clock" locations="{A,1}" />
+    <item id="2" label="Contact &amp; Socials" locations="{A,2}" type="menu" link="contact.html" />
+    
+    <item id="5" label="Weather" locations="{B,0}" />
+    <item id="6" label="News Feed" locations="{B,1}, {B,2}" />
+</layout>

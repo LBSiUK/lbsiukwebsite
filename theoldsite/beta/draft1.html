@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>lbsi.uk homepage</title>
+    <link rel="icon" href="fav.ico" type="image/x-icon">
+    <style>
+        @font-face {
+            font-family: "Roman";
+            src: url("Roman.otf");
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(90deg, rgba(5,1,80,1) 0%, rgba(51,0,77,1) 51%, rgba(69,43,0,1) 100%);
+            color: white;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 900px;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: coral;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 6rem 2rem 2rem 2rem; /* Add spacing to avoid nav overlap */
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-family: "Roman", serif;
+            font-size: 3.5rem;
+            margin: 0;
+        }
+
+        section {
+            margin-bottom: 2.5rem;
+        }
+
+        section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid coral;
+            padding-bottom: 0.5rem;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        a.button {
+            background-color: #e67248;
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+        }
+
+        a.button:hover {
+            background-color: #cf5a30;
+        }
+
+        .footer {
+            font-size: 0.9rem;
+            color: grey;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        a {
+            color: coral;
+        }
+    </style>
+</head>
+<body>
+    <!--#include virtual="nav.html" -->
+    <div class="container">
+        <header>
+            <h1><b>lbsi.uk</b></h1>
+        </header>
+
+        <section id="social">
+            <h2>Social media</h2>
+            <div class="button-group">
+                <a href="https://www.youtube.com/lbsiuk" class="button" target="_blank">YouTube</a>
+                <a href="https://www.instagram.com/lbsiuk69420/" class="button" target="_blank">Instagram</a>
+                <a href="https://www.linkedin.com/in/leon-brahams-880ba222b/" class="button" target="_blank">LinkedIn</a>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2>Contact me directly</h2>
+            <p>Discord: <strong>@lbsiuk</strong></p>
+            <p>Telegram: <a href="https://t.me/@lbsiuk" target="_blank">@lbsiuk</a></p>
+            <p>Email: <a href="mailto:lbsiukbusiness@gmail.com">lbsiukbusiness@gmail.com</a></p>
+        </section>
+
+        <section id="about">
+            <h2>About me</h2>
+            <p>I'm Leon, 18 years old, and always curious about how the world and technology work. I worked as a sysadmin during the summer of 2024 and have several years of part-time phone shop experience. I'm great with FFmpeg, and I'm currently studying Computer Science, Physics, and Politics at A-level.</p>
+            <p>I’m experienced with Windows (including enterprise tools), MacOS, and Linux. My main machine is a Mac, and I enjoy scripting with PowerShell. I'm based in London, England.</p>
+        </section>
+
+        <div class="footer">
+            <p>All links on this page open in a new tab.</p>
+            <p>Coded in basic HTML and CSS.</p>
+            <p>Information on this website is © LBSi UK / Leon Brahams 2025</p>
+            <p><a href="https://lbsi.uk/legacy.html" style="font-size: 0.9rem;">Legacy website (prior to 06/08/2024)</a></p>
+        </div>
+    </div>
+</body>
+</html>

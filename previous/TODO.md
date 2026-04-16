@@ -1,0 +1,1 @@
+- [x] Create resources.html from resources.php

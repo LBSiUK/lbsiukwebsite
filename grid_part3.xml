@@ -1,0 +1,8 @@
+<layout>
+    <!-- Rows C-D, Cols 0-2 -->
+    <item id="12" label="Photo Gallery" locations="{C,0}, {C,1}" link="gallery.html" image="images/pslide-roger.jpeg"/>
+    <item id="8" label="FFmpeg scripts" locations="{C,2}" link="ffmpegscripts.html" image="images/ffmpeg_logo.svg" />
+    
+    <item id="13" label="OneDrive" locations="{D,0}" />
+    <item id="14" label="Store" locations="{D,1}, {D,2}" />
+</layout>

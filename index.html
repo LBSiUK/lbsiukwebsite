@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lbsi.uk homepage</title>
+    <link rel="icon" href="fav.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            /* Default values, overridden by JS */
+            --gap-size: 10px;
+            --tile-size: 120px;
+            --grid-width: 1000px;
+            --grid-height: 800px;
+            --grid-cols: 6;
+            --grid-rows: 4;
+        }
+
+        body {
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+            background-color: #050110; 
+            color: white;
+        }
+
+        #silk-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        #main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+
+        #grid-container {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-cols), var(--tile-size));
+            grid-template-rows: repeat(var(--grid-rows), var(--tile-size));
+            gap: var(--gap-size);
+            width: var(--grid-width);
+            height: var(--grid-height);
+            box-sizing: border-box;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .tile {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: calc(var(--tile-size) * 0.1);
+            box-sizing: border-box;
+            overflow: hidden;
+            user-select: none;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tile:hover {
+            transform: scale(1.03);
+            z-index: 100;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            outline: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .tile-label {
+            font-size: calc(var(--tile-size) * 0.09);
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            line-height: 1.2;
+            z-index: 2;
+        }
+
+        .tile-coord {
+            position: absolute;
+            top: calc(var(--tile-size) * 0.08);
+            left: calc(var(--tile-size) * 0.08);
+            font-size: calc(var(--tile-size) * 0.08);
+            opacity: 0.4;
+            font-family: monospace;
+            z-index: 2;
+        }
+
+        /* --- NEW UTILITY CLASS FOR HIDING SOURCE TILE CONTENT --- */
+        .tile.source-hidden {
+            background-image: none !important; /* Hides the logo */
+        }
+        .tile.source-hidden > * {
+            opacity: 0 !important; /* Hides text/children */
+        }
+
+        .tile.content-tile {
+            background-color: rgba(45, 43, 74, 0.85);
+            cursor: default;
+            display: block;
+            padding: calc(var(--tile-size) * 0.15);
+            overflow-y: auto;
+        }
+        
+        .tile.content-tile:hover {
+            transform: scale(1.01);
+        }
+
+        .tile.content-tile h2 {
+            margin-top: 0;
+            font-size: calc(var(--tile-size) * 0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: calc(var(--tile-size) * 0.05);
+            margin-bottom: calc(var(--tile-size) * 0.05);
+            font-family: "Roman", serif;
+        }
+
+        .tile.content-tile p {
+            font-size: calc(var(--tile-size) * 0.11);
+            line-height: 1.4;
+            margin-bottom: calc(var(--tile-size) * 0.1);
+        }
+
+        .tile.nav-tile, .tile.menu-tile {
+            background-color: rgba(45, 43, 74, 0.85) !important;
+            justify-content: flex-end; 
+            align-items: flex-start;
+        }
+
+        .nav-arrow, .menu-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30%; 
+            height: 30%;
+            object-fit: contain;
+            opacity: 0.8;
+        }
+        
+        .tile.clock-tile {
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            background-color: rgba(30, 60, 114, 0.85) !important;
+        }
+        
+        .clock-time {
+            font-size: calc(var(--tile-size) * 0.18);
+            font-weight: 400;
+            white-space: nowrap;
+            width: 85%;
+            text-align: center;
+        }
+        
+        .clock-date {
+            margin-top: calc(var(--tile-size) * 0.05);
+            font-size: calc(var(--tile-size) * 0.1);
+            font-weight: 300;
+            opacity: 0.8;
+            text-transform: capitalize;
+        }
+
+        .tile.content-tile::-webkit-scrollbar {
+            width: 4px;
+        }
+        .tile.content-tile::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3); 
+            border-radius: 2px;
+        }
+
+        /* --- APP LAUNCH ANIMATION STYLES --- */
+        .app-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease; 
+        }
+        .app-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* The flying container */
+        .animating-tile {
+            position: fixed;
+            z-index: 600;
+            transform-style: preserve-3d;
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-origin: center center;
+            /* Ensure the font matches the tile */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .animating-tile.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .tile-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            box-sizing: border-box; 
+        }
+
+        /* Front face is a clone of the tile */
+        .tile-front {
+            transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        
+        /* New class for shrinking/flipping the front face content */
+        .tile-front.animate-shrink {
+             transform: scale(0.8);
+             opacity: 0.5;
+        }
+
+        /* Back face is the "App Window" */
+        .tile-back {
+            transform: rotateY(180deg);
+            background: #ffffff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid #444; 
+        }
+
+        .app-header {
+            height: 40px;
+            background: #101828;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .app-close-btn {
+            width: 40px;
+            height: 40px;
+            background: #e81123;
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .app-close-btn:hover {
+            background: #f1707a;
+        }
+
+        .app-frame {
+            flex-grow: 1;
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="silk-canvas"></canvas>
+    
+    <!-- Backdrop for App Mode -->
+    <div id="app-backdrop" class="app-backdrop"></div>
+
+    <div id="main-wrapper">
+        <div id="grid-container">
+            <!-- Tiles injected by JS -->
+        </div>
+    </div>
+
+    <!-- Silk Background Script -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('silk-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let time = 0;
+
+            const waves = [
+                { color: 'rgba(5, 1, 80, 0.4)', speed: 0.005, amplitude: 50, wavelength: 0.01, offset: 0 },
+                { color: 'rgba(51, 0, 77, 0.3)', speed: 0.007, amplitude: 70, wavelength: 0.008, offset: 100 },
+                { color: 'rgba(69, 43, 0, 0.2)', speed: 0.003, amplitude: 90, wavelength: 0.005, offset: 200 },
+                { color: 'rgba(100, 50, 255, 0.15)', speed: 0.006, amplitude: 40, wavelength: 0.012, offset: 50 }
+            ];
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+
+            function draw() {
+                ctx.fillStyle = '#050110';
+                ctx.fillRect(0, 0, width, height);
+                waves.forEach(wave => {
+                    ctx.beginPath();
+                    ctx.moveTo(0, height / 2);
+                    for (let x = 0; x <= width; x += 10) {
+                        const y = height / 2 + 
+                                  Math.sin(x * wave.wavelength + time * wave.speed + wave.offset) * wave.amplitude +
+                                  Math.sin(x * wave.wavelength * 0.5 + time * wave.speed * 0.5) * (wave.amplitude / 2);
+                        ctx.lineTo(x, y);
+                    }
+                    ctx.lineTo(width, height);
+                    ctx.lineTo(0, height);
+                    ctx.closePath();
+                    ctx.fillStyle = wave.color;
+                    ctx.fill();
+                    ctx.strokeStyle = wave.color.replace('0.4', '0.6').replace('0.3', '0.5');
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+                time += 1;
+                requestAnimationFrame(draw);
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            draw();
+        })();
+    </script>
+
+    <!-- Grid Logic -->
+    <script>
+        function getRandomColor() {
+            const colors = [
+                '#da532c', '#2b5797', '#b91d47', '#99b433', '#00a300', 
+                '#1e7145', '#ff0097', '#9f00a7', '#7e3878', '#603cba',
+                '#00aba9', '#2d89ef', '#e3a21a', '#6d8764'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function parseCoordinate(coordStr) {
+            const clean = coordStr.replace(/[{}]/g, '').trim();
+            const parts = clean.split(',');
+            const rowChar = parts[0].trim().toUpperCase();
+            const colNum = parseInt(parts[1].trim());
+            const rowNum = rowChar.charCodeAt(0) - 65; 
+            return { r: rowNum, c: colNum };
+        }
+
+        function getOrdinalSuffix(day) {
+            if (day > 3 && day < 21) return 'th';
+            switch (day % 10) {
+                case 1:  return "st";
+                case 2:  return "nd";
+                case 3:  return "rd";
+                default: return "th";
+            }
+        }
+
+        function updateClock(timeEl, dateEl) {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"
+            ];
+            const month = monthNames[now.getMonth()];
+            const day = now.getDate();
+            dateEl.textContent = `${month} ${day}${getOrdinalSuffix(day)}`;
+        }
+
+        let allGridItems = [];
+
+        // --- APP LAUNCH LOGIC ---
+        function launchApp(sourceTile, url) {
+            const backdrop = document.getElementById('app-backdrop');
+            const rect = sourceTile.getBoundingClientRect();
+
+            // Create the animating container
+            const container = document.createElement('div');
+            container.className = 'animating-tile';
+            
+            // Initial State: Match the tile exactly
+            container.style.top = rect.top + 'px';
+            container.style.left = rect.left + 'px';
+            container.style.width = rect.width + 'px';
+            container.style.height = rect.height + 'px';
+
+            // Front Face (Copy of tile)
+            const faceFront = document.createElement('div');
+            faceFront.className = 'tile-face tile-front';
+            
+            // Wrap content in a div to scale/shrink it
+            const contentWrapper = document.createElement('div');
+            contentWrapper.style.width = '100%';
+            contentWrapper.style.height = '100%';
+            contentWrapper.style.display = 'flex';
+            contentWrapper.style.flexDirection = 'column';
+            contentWrapper.style.justifyContent = 'flex-end';
+            contentWrapper.innerHTML = sourceTile.innerHTML;
+            
+            faceFront.appendChild(contentWrapper);
+
+            faceFront.style.backgroundColor = sourceTile.style.backgroundColor;
+            faceFront.style.backgroundImage = sourceTile.style.backgroundImage;
+            faceFront.style.backgroundSize = 'cover'; 
+            faceFront.style.backgroundPosition = 'center';
+            
+            // Add classes for styling text
+            sourceTile.classList.forEach(cls => {
+                if (cls !== 'tile') faceFront.classList.add(cls);
+            });
+            const compStyle = window.getComputedStyle(sourceTile);
+            faceFront.style.padding = compStyle.padding;
+            
+            // Back Face (The App Window)
+            const faceBack = document.createElement('div');
+            faceBack.className = 'tile-face tile-back';
+            
+            // App Header (Close Button)
+            const header = document.createElement('div');
+            header.className = 'app-header';
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'app-close-btn';
+            closeBtn.innerHTML = '&#10005;'; // X symbol
+            header.appendChild(closeBtn);
+            
+            // App Content (Iframe)
+            const iframe = document.createElement('iframe');
+            iframe.className = 'app-frame';
+            iframe.src = url;
+
+            faceBack.appendChild(header);
+            faceBack.appendChild(iframe);
+
+            container.appendChild(faceFront);
+            container.appendChild(faceBack);
+            document.body.appendChild(container);
+
+            // Hide the source tile content (including background image)
+            // AFTER creating the clone so the clone gets the image
+            sourceTile.classList.add('source-hidden');
+
+            // Force Reflow
+            container.offsetHeight; 
+
+            // Trigger Animation
+            requestAnimationFrame(() => {
+                backdrop.classList.add('active');
+                container.classList.add('flipped');
+                faceFront.classList.add('animate-shrink'); 
+                
+                // Final State: Centered, 80% size
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+                const targetW = winW * 0.8;
+                const targetH = winH * 0.8;
+                
+                container.style.top = ((winH - targetH) / 2) + 'px';
+                container.style.left = ((winW - targetW) / 2) + 'px';
+                container.style.width = targetW + 'px';
+                container.style.height = targetH + 'px';
+            });
+
+            // Close Logic
+            closeBtn.onclick = () => {
+                // Reverse Animation
+                backdrop.classList.remove('active');
+                container.classList.remove('flipped');
+                faceFront.classList.remove('animate-shrink'); 
+                
+                // Return to original tile position
+                const currentRect = sourceTile.getBoundingClientRect();
+                container.style.top = currentRect.top + 'px';
+                container.style.left = currentRect.left + 'px';
+                container.style.width = currentRect.width + 'px';
+                container.style.height = currentRect.height + 'px';
+
+                // Remove after transition
+                setTimeout(() => {
+                    document.body.removeChild(container);
+                    // Show content on source tile again
+                    sourceTile.classList.remove('source-hidden');
+                }, 800); 
+            };
+        }
+
+        function renderTiles() {
+            if (allGridItems.length === 0) return;
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = ''; 
+
+            const isPortrait = window.innerHeight > window.innerWidth;
+            
+            allGridItems.forEach(item => {
+                const id = item.getAttribute('id');
+                const label = item.getAttribute('label');
+                const locString = item.getAttribute('locations');
+                const type = item.getAttribute('type');
+                const link = item.getAttribute('link'); 
+                const image = item.getAttribute('image');
+                
+                const rawLocs = locString.split('},').map(s => s.includes('}') ? s : s + '}');
+                let coords = rawLocs.map(parseCoordinate);
+
+                // --- HYBRID MAPPING LOGIC (Portrait Mode) ---
+                if (isPortrait) {
+                    coords = coords.map(c => {
+                        // Top Half (Rows 0, 1): Interleave Left/Right
+                        if (c.r < 2) {
+                            if (c.c < 3) {
+                                // Left Side -> Row * 2
+                                return { r: c.r * 2, c: c.c };
+                            } else {
+                                // Right Side -> Row * 2 + 1, Shift left by 3
+                                return { r: c.r * 2 + 1, c: c.c - 3 };
+                            }
+                        } 
+                        // Bottom Half (Rows 2, 3): Stack Left then Right
+                        else {
+                            if (c.c < 3) {
+                                // Left Side -> Row + 2 (Maps 2->4, 3->5)
+                                return { r: c.r + 2, c: c.c };
+                            } else {
+                                // Right Side -> Row + 4 (Maps 2->6, 3->7), Shift left by 3
+                                return { r: c.r + 4, c: c.c - 3 };
+                            }
+                        }
+                    });
+                }
+
+                const minRow = Math.min(...coords.map(p => p.r));
+                const maxRow = Math.max(...coords.map(p => p.r));
+                const minCol = Math.min(...coords.map(p => p.c));
+                const maxCol = Math.max(...coords.map(p => p.c));
+
+                const rowStart = minRow + 1;
+                const rowEnd = maxRow + 2;
+                const colStart = minCol + 1;
+                const colEnd = maxCol + 2;
+
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.style.gridArea = `${rowStart} / ${colStart} / ${rowEnd} / ${colEnd}`;
+
+                // Handle Background Image
+                if (image) {
+                    tile.style.backgroundImage = `url('${image}')`;
+                    tile.style.backgroundSize = 'cover';
+                    tile.style.backgroundPosition = 'center';
+                }
+
+                // Link Handling Logic
+                if ((id === "8" || id === "10" || id === "12") && link) {
+                    tile.onclick = (e) => {
+                        e.preventDefault();
+                        launchApp(tile, link);
+                    };
+                    tile.title = label || "Launch App";
+                    tile.style.cursor = "pointer";
+                } 
+                else if (link) {
+                    tile.onclick = () => window.location.href = link;
+                    tile.title = label || ""; 
+                }
+
+                if (type === 'content') {
+                    tile.classList.add('content-tile');
+                    tile.innerHTML = item.textContent.trim();
+                    if (!link) tile.onclick = null; 
+                } else if (type === 'nav') {
+                    tile.classList.add('nav-tile');
+                    tile.innerHTML = `
+                        <img src="back.svg" class="nav-arrow" alt="Back">
+                        <span class="tile-label">Home page</span>
+                    `;
+                    tile.title = "Return Home";
+                } else if (type === 'clock') {
+                    tile.classList.add('clock-tile');
+                    const timeSpan = document.createElement('div');
+                    timeSpan.className = 'clock-time';
+                    const dateSpan = document.createElement('div');
+                    dateSpan.className = 'clock-date';
+                    tile.appendChild(timeSpan);
+                    tile.appendChild(dateSpan);
+                    updateClock(timeSpan, dateSpan);
+                    setInterval(() => updateClock(timeSpan, dateSpan), 1000);
+                } else {
+                    if (type === 'menu') {
+                        tile.classList.add('menu-tile');
+                        tile.innerHTML = `
+                            <img src="images/link.png" class="menu-icon" alt="Link">
+                            <span class="tile-label">${label}</span>
+                        `;
+                    } else {
+                        if (!image) {
+                            tile.style.backgroundColor = getRandomColor();
+                        }
+                        tile.innerHTML = `<span class="tile-label">${label}</span>`;
+                    }
+                }
+                gridContainer.appendChild(tile);
+            });
+        }
+
+        function resizeGrid() {
+            const availableHeight = window.innerHeight;
+            const availableWidth = window.innerWidth;
+            const isPortrait = availableHeight > availableWidth;
+
+            // 6x4 (Landscape) or 3x8 (Portrait)
+            const cols = isPortrait ? 3 : 6;
+            const rows = isPortrait ? 8 : 4;
+            
+            const root = document.documentElement;
+            root.style.setProperty('--grid-cols', cols);
+            root.style.setProperty('--grid-rows', rows);
+
+            const gap = 10;
+            const padding = 40; 
+            const maxTileW = (availableWidth - (gap * (cols - 1)) - padding) / cols;
+            const maxTileH = (availableHeight - (gap * (rows - 1)) - padding) / rows;
+            const tileSize = Math.floor(Math.min(maxTileW, maxTileH));
+
+            const gridW = (tileSize * cols) + (gap * (cols - 1));
+            const gridH = (tileSize * rows) + (gap * (rows - 1));
+
+            root.style.setProperty('--tile-size', `${tileSize}px`);
+            root.style.setProperty('--grid-width', `${gridW}px`);
+            root.style.setProperty('--grid-height', `${gridH}px`);
+
+            renderTiles();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load 4 Separate Files
+            const files = ['grid_part1.xml', 'grid_part2.xml', 'grid_part3.xml', 'grid_part4.xml'];
+            
+            Promise.all(files.map(url => fetch(url).then(res => res.text())))
+                .then(contents => {
+                    const parser = new DOMParser();
+                    allGridItems = []; 
+
+                    contents.forEach(xmlContent => {
+                        const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                        const items = Array.from(xmlDoc.getElementsByTagName('item'));
+                        allGridItems = allGridItems.concat(items);
+                    });
+
+                    resizeGrid();
+                })
+                .catch(err => console.error("Error loading grid files:", err));
+
+            window.addEventListener('resize', resizeGrid);
+        });
+    </script>
+</body>
+</html>
