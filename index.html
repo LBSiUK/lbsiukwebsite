@@ -393,7 +393,17 @@
             dateEl.textContent = `${month} ${day}${getOrdinalSuffix(day)}`;
         }
 
+        // Size of the layout viewport. Unlike innerWidth/innerHeight this does not grow
+        // when a phone browser zooms out to fit the grid's default 1000px size before
+        // the XML has loaded, which left the tiles far too big on phones.
+        function viewportSize() {
+            const el = document.documentElement;
+            return { w: el.clientWidth, h: el.clientHeight };
+        }
+
         let allGridItems = [];
+        // Tiles are rebuilt on every resize, so keep one clock timer and clear it each time
+        let clockTimer = null;
 
         // --- APP LAUNCH LOGIC ---
         function launchApp(sourceTile, url) {
@@ -512,9 +522,11 @@
         function renderTiles() {
             if (allGridItems.length === 0) return;
             const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = ''; 
+            gridContainer.innerHTML = '';
+            clearInterval(clockTimer);
 
-            const isPortrait = window.innerHeight > window.innerWidth;
+            const vp = viewportSize();
+            const isPortrait = vp.h > vp.w;
             
             allGridItems.forEach(item => {
                 const id = item.getAttribute('id');
@@ -608,7 +620,7 @@
                     tile.appendChild(timeSpan);
                     tile.appendChild(dateSpan);
                     updateClock(timeSpan, dateSpan);
-                    setInterval(() => updateClock(timeSpan, dateSpan), 1000);
+                    clockTimer = setInterval(() => updateClock(timeSpan, dateSpan), 1000);
                 } else {
                     if (type === 'menu') {
                         tile.classList.add('menu-tile');
@@ -628,8 +640,7 @@
         }
 
         function resizeGrid() {
-            const availableHeight = window.innerHeight;
-            const availableWidth = window.innerWidth;
+            const { w: availableWidth, h: availableHeight } = viewportSize();
             const isPortrait = availableHeight > availableWidth;
 
             // 6x4 (Landscape) or 3x8 (Portrait)

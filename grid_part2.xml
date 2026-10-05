@@ -1,7 +1,7 @@
 <layout>
     <!-- Rows A-B, Cols 3-5 -->
-    <item id="3" label="About" locations="{A,3}" type="menu" link="about.html" />
-    <item id="4" label="Resources" locations="{A,4}" type="menu" link="resources.html" />
+    <item id="3" label="About" locations="{A,3}" type="menu" link="previous/about.html" />
+    <item id="4" label="Resources" locations="{A,4}" type="menu" link="previous/resources.html" />
     <item id="7" label="YouTube Channel" locations="{A,5}" type="menu" link="https://youtube.com/lbsiuk" />
 
     <item id="9" label="Maps" locations="{B,3}" />

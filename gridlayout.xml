@@ -23,7 +23,7 @@
     <!-- ROW C (2) -->
     <item id="12" label="Photo Gallery" locations="{C,0}, {C,1}" link="gallery.html" image="images/pslide-roger.jpeg"/>
     <item id="8" label="FFmpeg scripts" locations="{C,2}" link="ffmpegscripts.html" image="images/ffmpeg_logo.svg" />
-    <item id="10" label="Old website" locations="{C,3}" link="indexold.html" image="images/oldsite.png">
+    <item id="10" label="Old website" locations="{C,3}" link="indexold.html" image="images/oldsite.png" />
     <!-- Content Tile Bottom Half occupies C4, C5 -->
 
     <!-- ROW D (3) - NEW ROW -->
