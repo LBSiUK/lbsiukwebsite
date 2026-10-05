@@ -8,8 +8,6 @@
 </head>
 <body>
     
-<?php include 'header.php'; ?>
-    
 <div class="container">
     <header>
         <h1><b>lbsi.uk</b></h1>

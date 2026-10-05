@@ -8,8 +8,6 @@
 </head>
 <body>
 
-<?php include 'header.php'; ?>
-
 <div class="container">
     <header>
         <h1>Contact and Social Media</h1>
